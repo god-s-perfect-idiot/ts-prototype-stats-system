@@ -1,0 +1,2144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>Routine Tracker</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg: #fde8dc;
+        --bg-light: #fff5ef;
+        --card-bg: #fff7f0;
+        --green: #2e9e3e;
+        --green-light: #3ab54a;
+        --green-border: #2e9e3e;
+        --orange: #e8652a;
+        --orange-light: #f47c42;
+        --red: #d94040;
+        --blue: #4a7adf;
+        --purple: #7c5cbf;
+        --gray: #999;
+        --gray-light: #ccc;
+        --text-dark: #333;
+        --text-muted: #888;
+        --white: #fff;
+        --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      }
+
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: var(--bg);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .phone-frame {
+        width: 100%;
+        max-width: 430px;
+        min-height: 100vh;
+        background: var(--bg);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* ========== TAB CONTENT ========== */
+      .tab-content {
+        display: none;
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 90px;
+      }
+      .tab-content.active {
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ========== ROUTINE TAB ========== */
+      .routine-tab {
+        padding: 16px 20px;
+      }
+
+      .streak-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+      .streak-info {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--green);
+      }
+      .streak-info .fire {
+        font-size: 16px;
+      }
+      .streak-info.no-streak {
+        color: var(--text-muted);
+        font-weight: 400;
+        font-size: 13px;
+      }
+      .take-day-off {
+        background: var(--white);
+        border: 1px solid var(--gray-light);
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 12px;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .best-streak {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      /* Day circles */
+      .day-circles {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        margin-bottom: 16px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .day-circle-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        min-width: 44px;
+      }
+      .day-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid var(--gray-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: var(--gray);
+        background: var(--white);
+        position: relative;
+      }
+      .day-circle.today {
+        border-color: var(--green);
+      }
+      .day-circle.today .circle-icon {
+        color: var(--green);
+        font-size: 16px;
+      }
+      .day-circle.special {
+        border: 2px dashed var(--purple);
+      }
+      .day-circle.special .circle-icon {
+        color: var(--purple);
+        font-size: 14px;
+      }
+      .day-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+      .day-label.today-label {
+        color: var(--green);
+      }
+      .day-label.special-label {
+        color: var(--purple);
+      }
+
+      /* Routine header */
+      .routine-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+      .alarm-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--white);
+        border: 1px solid var(--gray-light);
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 13px;
+        color: var(--text-dark);
+      }
+      .alarm-badge svg {
+        width: 14px;
+        height: 14px;
+      }
+      .routine-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+      .edit-btn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        color: var(--blue);
+        cursor: pointer;
+        background: none;
+        border: none;
+      }
+
+      /* Progress bar */
+      .progress-wrap {
+        height: 5px;
+        background: var(--gray-light);
+        border-radius: 3px;
+        margin: 10px 0 20px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: var(--green);
+        border-radius: 3px;
+        transition: width 0.5s ease;
+      }
+
+      /* Routine items */
+      .routine-items {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .routine-item {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border: 2.5px solid transparent;
+        transition:
+          border-color 0.3s ease,
+          box-shadow 0.3s ease;
+        box-shadow: var(--shadow);
+        position: relative;
+      }
+      .routine-item.completed {
+        border-color: var(--green-border);
+        box-shadow:
+          0 0 0 1px var(--green-border),
+          var(--shadow);
+      }
+
+      .item-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+        background: var(--white);
+      }
+
+      .item-details {
+        flex: 1;
+        min-width: 0;
+      }
+      .item-type {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 2px;
+      }
+      .item-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 2px;
+      }
+      .item-desc {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .item-action {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        border: none;
+        transition: all 0.25s ease;
+      }
+
+      /* Play button for timer */
+      .item-action.play-btn {
+        background: var(--white);
+        border: 2px solid var(--orange);
+      }
+      .item-action.play-btn svg {
+        fill: var(--orange);
+        width: 18px;
+        height: 18px;
+        margin-left: 2px;
+      }
+
+      /* Checkbox button for to-do */
+      .item-action.check-btn {
+        background: var(--white);
+        border: 2px solid var(--gray-light);
+      }
+      .item-action.check-btn svg {
+        fill: var(--white);
+        width: 20px;
+        height: 20px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .item-action.check-btn.checked {
+        background: var(--green);
+        border-color: var(--green);
+      }
+      .item-action.check-btn.checked svg {
+        opacity: 1;
+      }
+
+      /* Bottom action buttons */
+      .routine-bottom-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px;
+        position: fixed;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 430px;
+      }
+      .add-items-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--white);
+        border: 1.5px solid var(--gray-light);
+        border-radius: 24px;
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--blue);
+        cursor: pointer;
+      }
+      .add-items-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      .do-routine-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--white);
+        border: 2px solid var(--orange);
+        border-radius: 28px;
+        padding: 12px 24px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--white);
+        cursor: pointer;
+        background: var(--orange);
+        box-shadow: 0 4px 16px rgba(232, 101, 42, 0.3);
+      }
+      .do-routine-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: var(--white);
+      }
+
+      /* ========== HISTORY TAB ========== */
+      .history-tab {
+        padding: 24px 20px;
+        text-align: center;
+      }
+      .history-date {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 6px;
+      }
+      .history-count {
+        font-size: 16px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+      }
+      .history-items {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-align: left;
+      }
+      .history-item {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border: 2.5px solid var(--green-border);
+        box-shadow: var(--shadow);
+      }
+      .history-item .item-completed-time {
+        font-size: 12px;
+        color: var(--green);
+        font-weight: 500;
+      }
+
+      .my-stats-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--orange);
+        border: none;
+        border-radius: 24px;
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--white);
+        cursor: pointer;
+        margin-top: 20px;
+        position: fixed;
+        bottom: 138px;
+        left: 20px;
+        box-shadow: 0 4px 12px rgba(232, 101, 42, 0.3);
+      }
+      .add-missed-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--white);
+        border: 1.5px solid var(--gray-light);
+        border-radius: 24px;
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--blue);
+        cursor: pointer;
+        margin-top: 20px;
+        position: fixed;
+        bottom: 90px;
+        left: 20px;
+      }
+
+      /* ========== LEARNING / SETTINGS TABS ========== */
+      .placeholder-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        color: var(--text-muted);
+        font-size: 18px;
+        gap: 12px;
+        padding: 40px;
+      }
+      .placeholder-tab svg {
+        width: 48px;
+        height: 48px;
+        stroke: var(--gray-light);
+      }
+
+      /* ========== BOTTOM NAVIGATION ========== */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 430px;
+        background: var(--white);
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-around;
+        padding: 8px 0 12px;
+        z-index: 100;
+      }
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 4px 8px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .nav-item svg {
+        width: 24px;
+        height: 24px;
+      }
+      .nav-item .nav-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-muted);
+      }
+      .nav-item.active svg {
+        stroke: var(--orange);
+      }
+      .nav-item.active .nav-label {
+        color: var(--orange);
+        font-weight: 600;
+      }
+
+      /* ========== FEEDBACK BUTTON ========== */
+      .feedback-btn {
+        position: fixed;
+        right: -1px;
+        top: 50%;
+        transform: translateY(-50%);
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        background: var(--white);
+        border: 1px solid var(--gray-light);
+        border-right: none;
+        border-radius: 8px 0 0 8px;
+        padding: 12px 6px;
+        font-size: 12px;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 50;
+      }
+
+      /* ========== DO ROUTINE OVERLAY ========== */
+      .do-routine-overlay {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 430px;
+        height: 100vh;
+        background: var(--bg);
+        z-index: 200;
+        display: none;
+        flex-direction: column;
+      }
+      .do-routine-overlay.active {
+        display: flex;
+      }
+
+      /* Segmented progress bar */
+      .dr-progress {
+        display: flex;
+        gap: 4px;
+        padding: 12px 20px 0;
+      }
+      .dr-progress-segment {
+        flex: 1;
+        height: 5px;
+        background: var(--gray-light);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .dr-progress-segment.filled {
+        background: var(--green);
+      }
+
+      /* Top bar */
+      .dr-top-bar {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px 8px;
+        gap: 10px;
+      }
+      .dr-close-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--red);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .dr-close-btn svg {
+        width: 14px;
+        height: 14px;
+        stroke: var(--white);
+      }
+      .dr-expand-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--green);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .dr-expand-btn svg {
+        width: 14px;
+        height: 14px;
+        stroke: var(--white);
+      }
+      .dr-title {
+        flex: 1;
+        text-align: center;
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--text-dark);
+      }
+
+      /* Item step card */
+      .dr-step-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+      }
+      .dr-item-card {
+        background: var(--white);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: var(--shadow);
+      }
+      .dr-item-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+      .dr-item-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+        background: var(--bg-light);
+      }
+      .dr-item-name {
+        flex: 1;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+      .dr-item-check {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 2px solid var(--orange);
+        background: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.25s;
+      }
+      .dr-item-check svg {
+        width: 18px;
+        height: 18px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .dr-item-check.checked {
+        background: var(--orange);
+        border-color: var(--orange);
+      }
+      .dr-item-check.checked svg {
+        opacity: 1;
+      }
+      .dr-item-divider {
+        height: 1px;
+        background: #eee;
+        margin-bottom: 16px;
+      }
+      .dr-item-body {
+        font-size: 14px;
+        color: var(--text-muted);
+        font-style: italic;
+        line-height: 1.6;
+      }
+
+      /* Bottom bar */
+      .dr-bottom-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px 28px;
+        gap: 10px;
+      }
+      .dr-edit-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--white);
+        border: 1.5px solid var(--blue);
+        border-radius: 22px;
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--blue);
+        cursor: pointer;
+      }
+      .dr-edit-btn svg {
+        width: 14px;
+        height: 14px;
+      }
+      .dr-skip-btn {
+        background: var(--white);
+        border: 1.5px solid var(--gray-light);
+        border-radius: 22px;
+        padding: 8px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-dark);
+        cursor: pointer;
+      }
+      .dr-next-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--orange);
+        color: var(--white);
+        border: none;
+        border-radius: 28px;
+        padding: 10px 22px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(232, 101, 42, 0.3);
+      }
+      .dr-next-btn svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      /* ========== WELL DONE SCREEN ========== */
+      .dr-done-screen {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        padding: 30px 20px;
+        text-align: center;
+        overflow-y: auto;
+      }
+      .dr-done-screen.active {
+        display: flex;
+      }
+      .dr-done-illustration {
+        width: 160px;
+        height: 140px;
+        margin-bottom: 16px;
+        position: relative;
+        flex-shrink: 0;
+      }
+      .dr-done-illustration svg {
+        width: 100%;
+        height: 100%;
+      }
+      .dr-done-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--green);
+        margin-bottom: 6px;
+      }
+      .dr-done-text {
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-bottom: 24px;
+      }
+
+      /* Stats sections container */
+      .dr-stats {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 24px;
+        text-align: left;
+      }
+      .dr-stat-card {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: var(--shadow);
+      }
+      .dr-stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .dr-stat-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-dark);
+      }
+      .dr-stat-badge {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--green);
+        background: rgba(46, 158, 62, 0.1);
+        padding: 2px 10px;
+        border-radius: 10px;
+      }
+      .dr-7day-bar-wrap {
+        width: 100%;
+        margin-top: 4px;
+      }
+      .dr-7day-bar-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .dr-7day-bar-track {
+        flex: 1;
+        height: 8px;
+        background: var(--gray-light);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .dr-7day-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        background: var(--green);
+        transition: width 0.5s ease;
+      }
+      .dr-7day-bar-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--green);
+        min-width: 36px;
+        text-align: right;
+      }
+
+      /* 7-day bar chart */
+      .dr-bar-chart {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        height: 120px;
+        gap: 6px;
+        padding-top: 8px;
+      }
+      .dr-bar-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        justify-content: flex-end;
+      }
+      .dr-bar {
+        width: 100%;
+        max-width: 32px;
+        border-radius: 6px 6px 2px 2px;
+        background: var(--green);
+        min-height: 4px;
+        transition: height 0.4s ease;
+      }
+      .dr-bar.empty {
+        background: var(--gray-light);
+      }
+      .dr-bar-label {
+        font-size: 10px;
+        color: var(--text-muted);
+        margin-top: 6px;
+      }
+      .dr-bar-pct {
+        font-size: 9px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
+
+      /* Contribution graph */
+      .dr-contrib-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+      }
+      .dr-contrib-dot {
+        aspect-ratio: 1;
+        border-radius: 3px;
+        background: var(--gray-light);
+      }
+      .dr-contrib-dot.partial {
+        background: #7bc96f;
+      }
+      .dr-contrib-dot.full {
+        background: #196127;
+      }
+      .dr-contrib-legend {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        justify-content: flex-end;
+        margin-top: 8px;
+        font-size: 10px;
+        color: var(--text-muted);
+      }
+      .dr-contrib-legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+      }
+
+      /* Per-action completion */
+      .dr-action-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+      }
+      .dr-action-item + .dr-action-item {
+        border-top: 1px solid #f0f0f0;
+      }
+      .dr-action-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--bg-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      .dr-action-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .dr-action-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .dr-action-bar-wrap {
+        height: 6px;
+        background: var(--gray-light);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .dr-action-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        background: var(--green);
+        transition: width 0.5s ease;
+      }
+      .dr-action-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        flex-shrink: 0;
+        gap: 2px;
+      }
+      .dr-action-pct {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-dark);
+      }
+      .dr-action-streak {
+        font-size: 10px;
+        color: var(--text-muted);
+      }
+
+      /* Total routine days */
+      .dr-total-days {
+        text-align: center;
+        padding: 12px 0;
+      }
+      .dr-total-days-number {
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--orange);
+      }
+      .dr-total-days-label {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      /* Metric chart */
+      .dr-metric-chart {
+        position: relative;
+      }
+      .dr-metric-canvas {
+        width: 100%;
+        height: 180px;
+        background: #f5f6f8;
+        border-radius: 10px;
+      }
+      .dr-metric-nav {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+      }
+      .dr-metric-nav button {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 13px;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .dr-continue-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--orange);
+        color: var(--white);
+        border: none;
+        border-radius: 28px;
+        padding: 14px 32px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(232, 101, 42, 0.3);
+        flex-shrink: 0;
+      }
+
+      /* Animations */
+      @keyframes pop {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.2);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      .check-anim {
+        animation: pop 0.3s ease;
+      }
+      @keyframes borderGlow {
+        0% {
+          box-shadow: 0 0 0 0 rgba(46, 158, 62, 0.4);
+        }
+        100% {
+          box-shadow: 0 0 0 6px rgba(46, 158, 62, 0);
+        }
+      }
+      .border-glow {
+        animation: borderGlow 0.5s ease;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .slide-in {
+        animation: slideIn 0.3s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone-frame">
+      <!-- ========== ROUTINE TAB ========== -->
+      <div id="tab-routine" class="tab-content active">
+        <div class="routine-tab">
+          <!-- Streak -->
+          <div class="streak-bar">
+            <div class="streak-info no-streak" id="streak-info">
+              Complete items to start a streak
+            </div>
+          </div>
+
+          <!-- Day Circles -->
+          <div class="day-circles">
+            <div class="day-circle-item">
+              <div class="day-circle today">
+                <span class="circle-icon">👍</span>
+              </div>
+              <span class="day-label today-label">TODAY</span>
+            </div>
+            <div class="day-circle-item">
+              <div class="day-circle">
+                <span style="color: var(--gray)">2</span>
+              </div>
+              <span class="day-label">2</span>
+            </div>
+            <div class="day-circle-item">
+              <div class="day-circle special">
+                <span class="circle-icon">🏁</span>
+              </div>
+              <span class="day-label special-label">Day 3</span>
+            </div>
+            <div class="day-circle-item">
+              <div class="day-circle"></div>
+              <span class="day-label">4</span>
+            </div>
+            <div class="day-circle-item">
+              <div class="day-circle"></div>
+              <span class="day-label">5</span>
+            </div>
+            <div class="day-circle-item">
+              <div class="day-circle"></div>
+              <span class="day-label">6</span>
+            </div>
+            <div class="day-circle-item">
+              <div class="day-circle"></div>
+              <span class="day-label">7</span>
+            </div>
+          </div>
+
+          <!-- Routine Header -->
+          <div class="routine-header">
+            <div class="alarm-badge">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              8:00am
+            </div>
+            <span class="routine-title">My Routine</span>
+            <button class="edit-btn">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
+                />
+              </svg>
+              Edit
+            </button>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="progress-wrap">
+            <div
+              class="progress-fill"
+              id="progress-fill"
+              style="width: 0%"
+            ></div>
+          </div>
+
+          <!-- Routine Items -->
+          <div class="routine-items" id="routine-items">
+            <!-- Timer Item -->
+            <div class="routine-item" id="item-timer">
+              <div class="item-icon">⏱️</div>
+              <div class="item-details">
+                <div class="item-type">Timer</div>
+                <div class="item-name">Do a 3 minute meditation</div>
+              </div>
+              <button class="item-action play-btn" onclick="toggleTimer(this)">
+                <svg viewBox="0 0 24 24">
+                  <polygon points="5,3 19,12 5,21" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- To-Do Item -->
+            <div class="routine-item" id="item-todo-1">
+              <div class="item-icon">📝</div>
+              <div class="item-details">
+                <div class="item-type">To-Do</div>
+                <div class="item-name">test</div>
+                <div class="item-desc">test</div>
+              </div>
+              <button class="item-action check-btn" onclick="toggleCheck(this)">
+                <svg viewBox="0 0 24 24">
+                  <polyline
+                    points="20 6 9 17 4 12"
+                    fill="none"
+                    stroke="white"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="routine-bottom-actions">
+          <button class="add-items-btn">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="16" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+            Items
+          </button>
+          <button class="do-routine-btn" onclick="startDoRoutine()">
+            <svg viewBox="0 0 24 24">
+              <polygon points="5,3 19,12 5,21" fill="white" />
+            </svg>
+            Do Routine
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== HISTORY TAB ========== -->
+      <div id="tab-history" class="tab-content">
+        <div class="history-tab">
+          <div class="history-date">Today</div>
+          <div class="history-count" id="history-count">0 Items</div>
+          <div class="history-items" id="history-items">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+        <button class="my-stats-btn" onclick="showDrDoneFromMain()">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          My Statistics
+        </button>
+        <button class="add-missed-btn">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="4" y1="9" x2="20" y2="9" />
+            <line x1="4" y1="15" x2="20" y2="15" />
+            <line x1="10" y1="3" x2="8" y2="21" />
+            <line x1="16" y1="3" x2="14" y2="21" />
+          </svg>
+          Add Missed Entry
+        </button>
+      </div>
+
+      <!-- ========== LEARNING TAB ========== -->
+      <div id="tab-learning" class="tab-content">
+        <div class="placeholder-tab">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+          Learning
+          <span style="font-size: 14px">Coming soon</span>
+        </div>
+      </div>
+
+      <!-- ========== SETTINGS TAB ========== -->
+      <div id="tab-settings" class="tab-content">
+        <div class="placeholder-tab">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+            />
+          </svg>
+          Settings
+          <span style="font-size: 14px">Coming soon</span>
+        </div>
+      </div>
+
+      <!-- ========== DO ROUTINE OVERLAY ========== -->
+      <div class="do-routine-overlay" id="do-routine-overlay">
+        <!-- Progress segments -->
+        <div class="dr-progress" id="dr-progress"></div>
+
+        <!-- Top bar -->
+        <div class="dr-top-bar">
+          <button class="dr-close-btn" onclick="closeDoRoutine()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke-width="3"
+              stroke-linecap="round"
+            >
+              <line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="18" y1="6" x2="6" y2="18" />
+            </svg>
+          </button>
+          <button class="dr-expand-btn">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke-width="3"
+              stroke-linecap="round"
+            >
+              <polyline points="15 3 21 3 21 9" />
+              <polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          </button>
+          <div class="dr-title">Your Routine</div>
+        </div>
+
+        <!-- Step content (shown one item at a time) -->
+        <div class="dr-step-content" id="dr-step-content"></div>
+
+        <!-- Well Done screen -->
+        <div class="dr-done-screen" id="dr-done-screen">
+          <div class="dr-done-illustration">
+            <svg viewBox="0 0 200 180" fill="none">
+              <rect
+                x="50"
+                y="30"
+                width="120"
+                height="140"
+                rx="8"
+                fill="white"
+                stroke="#ccc"
+                stroke-width="1.5"
+              />
+              <rect
+                x="45"
+                y="34"
+                width="120"
+                height="140"
+                rx="8"
+                fill="white"
+                stroke="#ddd"
+                stroke-width="1"
+              />
+              <rect
+                x="40"
+                y="38"
+                width="120"
+                height="140"
+                rx="8"
+                fill="white"
+                stroke="#eee"
+                stroke-width="1"
+              />
+              <g stroke="#4a7adf" stroke-width="2" fill="none">
+                <path d="M75 30 C75 20, 85 20, 85 30" />
+                <path d="M90 30 C90 20, 100 20, 100 30" />
+                <path d="M105 30 C105 20, 115 20, 115 30" />
+                <path d="M120 30 C120 20, 130 20, 130 30" />
+                <path d="M135 30 C135 20, 145 20, 145 30" />
+              </g>
+              <circle
+                cx="110"
+                cy="110"
+                r="30"
+                stroke="#e8652a"
+                stroke-width="2.5"
+                fill="none"
+              />
+              <polygon
+                points="102,95 128,110 102,125"
+                fill="none"
+                stroke="#e8652a"
+                stroke-width="2.5"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M85 130 C70 120, 75 100, 95 95"
+                stroke="#e8652a"
+                stroke-width="2"
+                fill="none"
+                marker-end="url(#arrowhead)"
+              />
+              <defs>
+                <marker
+                  id="arrowhead"
+                  markerWidth="8"
+                  markerHeight="6"
+                  refX="8"
+                  refY="3"
+                  orient="auto"
+                >
+                  <polygon points="0 0, 8 3, 0 6" fill="#e8652a" />
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <div class="dr-done-title">Well done!</div>
+          <div class="dr-done-text">
+            You've gone through your entire routine.<br />Come back soon to keep
+            up your progress.
+          </div>
+
+          <!-- Stats sections -->
+          <div class="dr-stats" id="dr-stats">
+            <!-- 1. Activity for the last 7 days -->
+            <div class="dr-stat-card">
+              <div class="dr-stat-header">
+                <span class="dr-stat-title">Activity — Last 7 Days</span>
+              </div>
+              <div class="dr-7day-bar-wrap">
+                <div class="dr-7day-bar-row">
+                  <div class="dr-7day-bar-track">
+                    <div
+                      class="dr-7day-bar-fill"
+                      id="dr-7day-fill"
+                      style="width: 100%"
+                    ></div>
+                  </div>
+                  <span class="dr-7day-bar-label" id="dr-7day-pct">100%</span>
+                </div>
+              </div>
+              <div class="dr-bar-chart" id="dr-bar-chart"></div>
+            </div>
+
+            <!-- 2. Contribution graph -->
+            <div class="dr-stat-card">
+              <div class="dr-stat-header">
+                <span class="dr-stat-title">Contribution Graph</span>
+                <span style="font-size: 11px; color: var(--text-muted)"
+                  >Last 30 days</span
+                >
+              </div>
+              <div class="dr-contrib-grid" id="dr-contrib-grid"></div>
+              <div class="dr-contrib-legend">
+                <span>None</span>
+                <div
+                  class="dr-contrib-legend-dot"
+                  style="background: var(--gray-light)"
+                ></div>
+                <span>Partial</span>
+                <div
+                  class="dr-contrib-legend-dot"
+                  style="background: #7bc96f"
+                ></div>
+                <span>Full</span>
+                <div
+                  class="dr-contrib-legend-dot"
+                  style="background: #196127"
+                ></div>
+              </div>
+            </div>
+
+            <!-- 3. Per-action completion rate -->
+            <div class="dr-stat-card">
+              <div class="dr-stat-header">
+                <span class="dr-stat-title">Per-Action Completion</span>
+                <span style="font-size: 11px; color: var(--text-muted)"
+                  >Last 7 days</span
+                >
+              </div>
+              <div id="dr-action-list"></div>
+            </div>
+
+            <!-- 4. Total routine days -->
+            <div class="dr-stat-card">
+              <div class="dr-total-days">
+                <div class="dr-total-days-number">127</div>
+                <div class="dr-total-days-label">
+                  You've done your routine on <strong>127 days</strong>.
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Metric summary -->
+            <div class="dr-stat-card">
+              <div class="dr-stat-header">
+                <span class="dr-stat-title">Metric Summary</span>
+              </div>
+              <div class="dr-metric-chart">
+                <canvas class="dr-metric-canvas" id="dr-metric-canvas"></canvas>
+                <div class="dr-metric-nav">
+                  <button>&lt; Earlier</button>
+                  <button>Later &gt;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="dr-continue-btn" onclick="closeDoRoutine()">
+            Continue To Your Routine &rarr;
+          </button>
+        </div>
+
+        <!-- Bottom bar -->
+        <div class="dr-bottom-bar" id="dr-bottom-bar">
+          <button class="dr-edit-btn">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
+              />
+            </svg>
+            Edit
+          </button>
+          <button class="dr-skip-btn" onclick="drNext()">Skip</button>
+          <button class="dr-next-btn" id="dr-next-btn" onclick="drNext()">
+            Finish Routine &rarr;
+          </button>
+        </div>
+      </div>
+
+      <!-- Feedback Button -->
+      <div class="feedback-btn">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <path
+            d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+          />
+        </svg>
+        Feedback
+      </div>
+
+      <!-- ========== BOTTOM NAVIGATION ========== -->
+      <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('routine')">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polygon points="5,3 19,12 5,21" />
+          </svg>
+          <span class="nav-label">Routine</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('history')">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span class="nav-label">History</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('learning')">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+          <span class="nav-label">Learning</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('settings')">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+            />
+          </svg>
+          <span class="nav-label">Settings</span>
+        </button>
+      </nav>
+    </div>
+
+    <script>
+      // State
+      let completedItems = new Set();
+      const totalItems = 2; // timer + todo
+
+      // Tab switching
+      function switchTab(tab) {
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((t) => t.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((n) => n.classList.remove("active"));
+        document.getElementById("tab-" + tab).classList.add("active");
+        event.currentTarget.classList.add("active");
+
+        // Update history when switching to it
+        if (tab === "history") {
+          updateHistory();
+        }
+      }
+
+      // Toggle check button (To-Do items)
+      function toggleCheck(btn) {
+        const item = btn.closest(".routine-item");
+        const itemId = item.id;
+        const isChecked = btn.classList.contains("checked");
+
+        if (isChecked) {
+          btn.classList.remove("checked");
+          item.classList.remove("completed");
+          completedItems.delete(itemId);
+        } else {
+          btn.classList.add("checked");
+          btn.classList.add("check-anim");
+          item.classList.add("completed");
+          item.classList.add("border-glow");
+          completedItems.add(itemId);
+
+          // Store completion time
+          item.dataset.completedAt = new Date().toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
+
+          setTimeout(() => {
+            btn.classList.remove("check-anim");
+            item.classList.remove("border-glow");
+          }, 500);
+        }
+
+        updateProgress();
+        updateStreak();
+        checkAllCompleted();
+      }
+
+      // Toggle timer (play button)
+      function toggleTimer(btn) {
+        const item = btn.closest(".routine-item");
+        const itemId = item.id;
+        const isCompleted = item.classList.contains("completed");
+
+        if (isCompleted) {
+          item.classList.remove("completed");
+          btn.innerHTML =
+            '<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21" fill="' +
+            getComputedStyle(document.documentElement)
+              .getPropertyValue("--orange")
+              .trim() +
+            '"/></svg>';
+          btn.style.background = "var(--white)";
+          btn.style.borderColor = "var(--orange)";
+          completedItems.delete(itemId);
+        } else {
+          item.classList.add("completed");
+          item.classList.add("border-glow");
+          btn.innerHTML =
+            '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+          btn.style.background = "var(--green)";
+          btn.style.borderColor = "var(--green)";
+          completedItems.add(itemId);
+
+          item.dataset.completedAt = new Date().toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
+
+          setTimeout(() => {
+            item.classList.remove("border-glow");
+          }, 500);
+        }
+
+        updateProgress();
+        updateStreak();
+        checkAllCompleted();
+      }
+
+      // Update progress bar
+      function updateProgress() {
+        const pct = (completedItems.size / totalItems) * 100;
+        document.getElementById("progress-fill").style.width = pct + "%";
+      }
+
+      // Update streak display
+      function updateStreak() {
+        const el = document.getElementById("streak-info");
+        if (completedItems.size > 0) {
+          el.className = "streak-info";
+          el.innerHTML = '<span class="fire">🔥</span> Streak: 1';
+
+          // Also show take day off & best streak
+          const parent = el.parentElement;
+          if (!document.getElementById("take-day-off-btn")) {
+            const dayOff = document.createElement("button");
+            dayOff.className = "take-day-off";
+            dayOff.id = "take-day-off-btn";
+            dayOff.innerHTML = "😴 Take Day Off";
+            parent.appendChild(dayOff);
+          }
+          if (!document.getElementById("best-streak-label")) {
+            const best = document.createElement("span");
+            best.className = "best-streak";
+            best.id = "best-streak-label";
+            best.textContent = "Best: 1 (current)";
+            parent.appendChild(best);
+          }
+        } else {
+          el.className = "streak-info no-streak";
+          el.innerHTML = "Complete items to start a streak";
+          const dayOff = document.getElementById("take-day-off-btn");
+          const best = document.getElementById("best-streak-label");
+          if (dayOff) dayOff.remove();
+          if (best) best.remove();
+        }
+      }
+
+      // Update history tab
+      function updateHistory() {
+        const container = document.getElementById("history-items");
+        const countEl = document.getElementById("history-count");
+        container.innerHTML = "";
+
+        const completedRoutineItems = document.querySelectorAll(
+          ".routine-item.completed",
+        );
+        countEl.textContent =
+          completedRoutineItems.length +
+          " Item" +
+          (completedRoutineItems.length !== 1 ? "s" : "");
+
+        completedRoutineItems.forEach((item) => {
+          const icon = item.querySelector(".item-icon").textContent;
+          const type = item.querySelector(".item-type").textContent;
+          const name = item.querySelector(".item-name").textContent;
+          const time = item.dataset.completedAt || "--:--";
+
+          const histItem = document.createElement("div");
+          histItem.className = "history-item";
+          histItem.innerHTML = `
+          <div class="item-icon">${icon}</div>
+          <div class="item-details">
+            <div class="item-type">${type}</div>
+            <div class="item-name">${name}</div>
+            <div class="item-completed-time">Completed at ${time}</div>
+          </div>
+        `;
+          container.appendChild(histItem);
+        });
+      }
+
+      // ========== DO ROUTINE FLOW ==========
+      let drItems = [];
+      let drCurrentStep = 0;
+      let drCheckedSteps = new Set();
+
+      function startDoRoutine() {
+        // Gather routine items
+        drItems = [];
+        document.querySelectorAll(".routine-item").forEach((item) => {
+          drItems.push({
+            id: item.id,
+            icon: item.querySelector(".item-icon").textContent,
+            type: item.querySelector(".item-type").textContent,
+            name: item.querySelector(".item-name").textContent,
+            desc: item.querySelector(".item-desc")
+              ? item.querySelector(".item-desc").textContent
+              : "",
+          });
+        });
+
+        drCurrentStep = 0;
+        drCheckedSteps.clear();
+
+        // Build progress segments
+        const progressEl = document.getElementById("dr-progress");
+        progressEl.innerHTML = "";
+        drItems.forEach((_, i) => {
+          const seg = document.createElement("div");
+          seg.className = "dr-progress-segment";
+          progressEl.appendChild(seg);
+        });
+
+        // Show overlay
+        document.getElementById("do-routine-overlay").classList.add("active");
+        document.getElementById("dr-done-screen").classList.remove("active");
+        document.getElementById("dr-step-content").style.display = "block";
+        document.getElementById("dr-bottom-bar").style.display = "flex";
+
+        renderDrStep();
+      }
+
+      function renderDrStep() {
+        const contentEl = document.getElementById("dr-step-content");
+        const item = drItems[drCurrentStep];
+        const isChecked = drCheckedSteps.has(drCurrentStep);
+
+        contentEl.innerHTML = `
+          <div class="dr-item-card slide-in">
+            <div class="dr-item-header">
+              <div class="dr-item-icon">${item.icon}</div>
+              <div class="dr-item-name">${item.name}</div>
+              <button class="dr-item-check ${isChecked ? "checked" : ""}" onclick="drToggleCheck(this)">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <div class="dr-item-divider"></div>
+            <div class="dr-item-body">${item.desc || "No additional details for this item."}</div>
+          </div>
+        `;
+
+        // Update progress segments
+        document.querySelectorAll(".dr-progress-segment").forEach((seg, i) => {
+          seg.classList.toggle("filled", i <= drCurrentStep);
+        });
+
+        // Update next button text
+        const nextBtn = document.getElementById("dr-next-btn");
+        if (drCurrentStep < drItems.length - 1) {
+          nextBtn.innerHTML = "Finish Routine &rarr;";
+        } else {
+          nextBtn.innerHTML = "Finish Routine &rarr;";
+        }
+      }
+
+      function drToggleCheck(btn) {
+        if (btn.classList.contains("checked")) {
+          btn.classList.remove("checked");
+          drCheckedSteps.delete(drCurrentStep);
+        } else {
+          btn.classList.add("checked");
+          btn.classList.add("check-anim");
+          drCheckedSteps.add(drCurrentStep);
+          setTimeout(() => btn.classList.remove("check-anim"), 300);
+        }
+      }
+
+      function drNext() {
+        if (drCurrentStep < drItems.length - 1) {
+          drCurrentStep++;
+          renderDrStep();
+        } else {
+          // Show done screen
+          showDrDone();
+        }
+      }
+
+      // ========== POPULATE DONE STATS ==========
+      function populateDoneStats() {
+        // --- 1. 7-Day Activity Bar Chart ---
+        const barChart = document.getElementById("dr-bar-chart");
+        barChart.innerHTML = "";
+        const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        const dayPcts = [100, 80, 100, 60, 100, 40, 100]; // mock data
+        const avgPct = Math.round(
+          dayPcts.reduce((a, b) => a + b, 0) / dayPcts.length,
+        );
+        document.getElementById("dr-7day-pct").textContent = avgPct + "%";
+        document.getElementById("dr-7day-fill").style.width = avgPct + "%";
+
+        dayPcts.forEach((pct, i) => {
+          const col = document.createElement("div");
+          col.className = "dr-bar-col";
+          const pctLabel = document.createElement("div");
+          pctLabel.className = "dr-bar-pct";
+          pctLabel.textContent = pct + "%";
+          const bar = document.createElement("div");
+          bar.className = "dr-bar" + (pct === 0 ? " empty" : "");
+          bar.style.height = Math.max(pct, 4) + "%";
+          const label = document.createElement("div");
+          label.className = "dr-bar-label";
+          label.textContent = days[i];
+          col.appendChild(pctLabel);
+          col.appendChild(bar);
+          col.appendChild(label);
+          barChart.appendChild(col);
+        });
+
+        // --- 2. Contribution Graph (30 days) ---
+        const grid = document.getElementById("dr-contrib-grid");
+        grid.innerHTML = "";
+        // Need exactly 30 dots for 30 days (6 cols × 5 rows)
+        const totalDots = 30;
+        const levels = ["", "partial", "full"];
+        const contribData = [];
+        for (let i = 0; i < totalDots; i++) {
+          const rand = Math.random();
+          if (rand < 0.25)
+            contribData.push(0); // none
+          else if (rand < 0.55)
+            contribData.push(1); // partial
+          else contribData.push(2); // full
+        }
+        contribData.forEach((level) => {
+          const dot = document.createElement("div");
+          dot.className =
+            "dr-contrib-dot" + (level > 0 ? " " + levels[level] : "");
+          grid.appendChild(dot);
+        });
+
+        // --- 3. Per-Action Completion Rate ---
+        const actionList = document.getElementById("dr-action-list");
+        actionList.innerHTML = "";
+        const routineItems = document.querySelectorAll(".routine-item");
+        const mockActions = [
+          { pct: 86, streak: 3 },
+          { pct: 71, streak: 1 },
+        ];
+        routineItems.forEach((item, idx) => {
+          const icon = item.querySelector(".item-icon").textContent;
+          const name = item.querySelector(".item-name").textContent;
+          const mock = mockActions[idx] || {
+            pct: Math.floor(Math.random() * 40 + 60),
+            streak: Math.floor(Math.random() * 5 + 1),
+          };
+
+          const row = document.createElement("div");
+          row.className = "dr-action-item";
+          row.innerHTML = `
+            <div class="dr-action-icon">${icon}</div>
+            <div class="dr-action-info">
+              <div class="dr-action-name">${name}</div>
+              <div class="dr-action-bar-wrap">
+                <div class="dr-action-bar-fill" style="width:${mock.pct}%"></div>
+              </div>
+            </div>
+            <div class="dr-action-meta">
+              <span class="dr-action-pct">${mock.pct}%</span>
+              <span class="dr-action-streak">🔥 ${mock.streak}d streak</span>
+            </div>
+          `;
+          actionList.appendChild(row);
+        });
+
+        // --- 4. Total routine days is static in HTML (127) ---
+
+        // --- 5. Metric Summary Chart (canvas) ---
+        const canvas = document.getElementById("dr-metric-canvas");
+        const ctx = canvas.getContext("2d");
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        const w = rect.width;
+        const h = rect.height;
+
+        // Light background
+        ctx.fillStyle = "#f5f6f8";
+        ctx.fillRect(0, 0, w, h);
+
+        // Labels
+        const yLabels = [
+          "energetic",
+          "9",
+          "8",
+          "7",
+          "6",
+          "5",
+          "4",
+          "3",
+          "2",
+          "1",
+          "lethargic",
+        ];
+        const steps = yLabels.length;
+        const padLeft = 60;
+        const padRight = 16;
+        const padTop = 16;
+        const padBottom = 30;
+        const chartW = w - padLeft - padRight;
+        const chartH = h - padTop - padBottom;
+
+        // Y-axis labels
+        ctx.fillStyle = "#666";
+        ctx.font = "10px system-ui, sans-serif";
+        ctx.textAlign = "right";
+        yLabels.forEach((lbl, i) => {
+          const y = padTop + (i / (steps - 1)) * chartH;
+          ctx.fillText(lbl, padLeft - 8, y + 3);
+          // grid line
+          ctx.strokeStyle = "#e0e0e0";
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(padLeft, y);
+          ctx.lineTo(w - padRight, y);
+          ctx.stroke();
+        });
+
+        // X-axis dates (last 7 days)
+        const xDates = [];
+        const now = new Date();
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          xDates.push(
+            d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          );
+        }
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#666";
+        xDates.forEach((lbl, i) => {
+          const x = padLeft + (i / (xDates.length - 1)) * chartW;
+          ctx.fillText(lbl, x, h - 8);
+        });
+
+        // Data bar — only today has a value (5 on scale)
+        const barIdx = 5; // second to last position (today = Mar 10)
+        const barX = padLeft + (barIdx / (xDates.length - 1)) * chartW;
+        const barVal = 5; // energetic = 0 (top), lethargic = 10 (bottom), 5 = middle
+        const barTopY = padTop + ((10 - barVal) / 10) * chartH;
+        const barBottomY = padTop + chartH;
+        const barW = (chartW / xDates.length) * 0.5;
+
+        ctx.fillStyle = "#5b8def";
+        ctx.fillRect(barX - barW / 2, barTopY, barW, barBottomY - barTopY);
+      }
+
+      function showDrDone() {
+        document.getElementById("dr-step-content").style.display = "none";
+        document.getElementById("dr-bottom-bar").style.display = "none";
+        document.getElementById("dr-done-screen").classList.add("active");
+
+        // Hide top bar and progress on the done screen
+        document.getElementById("dr-progress").style.display = "none";
+        document.querySelector(".dr-top-bar").style.display = "none";
+
+        // Fill all progress segments
+        document.querySelectorAll(".dr-progress-segment").forEach((seg) => {
+          seg.classList.add("filled");
+        });
+
+        // Also mark checked items as completed on the main routine view
+        drCheckedSteps.forEach((stepIdx) => {
+          const itemData = drItems[stepIdx];
+          const itemEl = document.getElementById(itemData.id);
+          if (itemEl && !itemEl.classList.contains("completed")) {
+            itemEl.classList.add("completed");
+            completedItems.add(itemData.id);
+            itemEl.dataset.completedAt = new Date().toLocaleTimeString(
+              "en-US",
+              { hour: "2-digit", minute: "2-digit", hour12: false },
+            );
+
+            // Update button visuals
+            const actionBtn = itemEl.querySelector(".item-action");
+            if (actionBtn.classList.contains("check-btn")) {
+              actionBtn.classList.add("checked");
+            } else if (actionBtn.classList.contains("play-btn")) {
+              actionBtn.innerHTML =
+                '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+              actionBtn.style.background = "var(--green)";
+              actionBtn.style.borderColor = "var(--green)";
+            }
+          }
+        });
+
+        updateProgress();
+        updateStreak();
+        populateDoneStats();
+      }
+
+      // Show done screen when all items completed from main view
+      function checkAllCompleted() {
+        if (completedItems.size >= totalItems) {
+          // Small delay so the user sees the last item animate
+          setTimeout(() => {
+            showDrDoneFromMain();
+          }, 600);
+        }
+      }
+
+      function showDrDoneFromMain() {
+        // Open overlay directly to the done screen
+        document.getElementById("do-routine-overlay").classList.add("active");
+        document.getElementById("dr-step-content").style.display = "none";
+        document.getElementById("dr-bottom-bar").style.display = "none";
+        document.getElementById("dr-progress").style.display = "none";
+        document.querySelector(".dr-top-bar").style.display = "none";
+        document.getElementById("dr-done-screen").classList.add("active");
+        populateDoneStats();
+      }
+
+      function closeDoRoutine() {
+        document
+          .getElementById("do-routine-overlay")
+          .classList.remove("active");
+        document.getElementById("dr-done-screen").classList.remove("active");
+        // Restore top bar and progress for next time
+        document.getElementById("dr-progress").style.display = "flex";
+        document.querySelector(".dr-top-bar").style.display = "flex";
+      }
+    </script>
+  </body>
+</html>
