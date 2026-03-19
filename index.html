@@ -958,9 +958,35 @@
       }
 
       /* Contribution graph */
+      .dr-contrib-container {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .dr-contrib-labels-y {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding-top: 20px; /* offset for month labels */
+        padding-bottom: 4px;
+        font-size: 9px;
+        color: var(--text-muted);
+        width: 20px;
+        text-align: right;
+      }
+      .dr-contrib-wrapper {
+        flex: 1;
+      }
+      .dr-contrib-labels-x {
+        display: flex;
+        justify-content: space-around;
+        font-size: 9px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
       .dr-contrib-grid {
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(7, 1fr);
         gap: 4px;
       }
       .dr-contrib-dot {
@@ -977,11 +1003,16 @@
       .dr-contrib-legend {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 12px;
         justify-content: flex-end;
-        margin-top: 8px;
+        margin-top: 12px;
         font-size: 10px;
         color: var(--text-muted);
+      }
+      .dr-contrib-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
       }
       .dr-contrib-legend-dot {
         width: 10px;
@@ -1075,8 +1106,35 @@
       .dr-metric-canvas {
         width: 100%;
         height: 180px;
-        background: #f5f6f8;
+        background: var(--white);
         border-radius: 10px;
+      }
+      .dr-metric-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dark);
+        text-align: center;
+        margin-bottom: 8px;
+      }
+      .dr-metric-views {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .dr-metric-view-btn {
+        background: var(--bg-light);
+        border: 1px solid var(--gray-light);
+        border-radius: 12px;
+        padding: 4px 12px;
+        font-size: 11px;
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+      .dr-metric-view-btn.active {
+        background: var(--orange);
+        color: var(--white);
+        border-color: var(--orange);
       }
       .dr-metric-nav {
         display: flex;
@@ -1147,9 +1205,109 @@
       .slide-in {
         animation: slideIn 0.3s ease;
       }
+
+      /* Persona gate (first screen) */
+      .persona-gate {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: var(--bg);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 28px 20px;
+      }
+      .persona-gate.active {
+        display: flex;
+      }
+      .persona-gate-card {
+        width: 100%;
+        max-width: 430px;
+        background: var(--white);
+        border-radius: 20px;
+        padding: 28px 22px 32px;
+        box-shadow: var(--shadow);
+        text-align: center;
+      }
+      .persona-gate-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+      }
+      .persona-gate-sub {
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.45;
+        margin-bottom: 22px;
+      }
+      .persona-gate-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .persona-gate-btn {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: 14px 18px;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .persona-gate-btn:active {
+        transform: scale(0.98);
+      }
+      .persona-gate-btn.primary {
+        background: var(--orange);
+        color: var(--white);
+        box-shadow: 0 4px 14px rgba(232, 101, 42, 0.35);
+      }
+      .persona-gate-btn.secondary {
+        background: var(--card-bg);
+        color: var(--text-dark);
+        border: 1.5px solid var(--gray-light);
+      }
     </style>
   </head>
   <body>
+    <div class="persona-gate active" id="persona-gate">
+      <div class="persona-gate-card">
+        <div class="persona-gate-title">How should we shape your stats?</div>
+        <div class="persona-gate-sub">
+          Pick a profile. The summary at the end of your routine will match
+          that activity pattern.
+        </div>
+        <div class="persona-gate-actions">
+          <button
+            type="button"
+            class="persona-gate-btn primary"
+            onclick="selectStatsPersona(1)"
+          >
+            New user
+          </button>
+          <button
+            type="button"
+            class="persona-gate-btn secondary"
+            onclick="selectStatsPersona(3)"
+          >
+            Returning user (3 days)
+          </button>
+          <button
+            type="button"
+            class="persona-gate-btn secondary"
+            onclick="selectStatsPersona(7)"
+          >
+            Recurring user (7 days)
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="phone-frame">
       <!-- ========== ROUTINE TAB ========== -->
       <div id="tab-routine" class="tab-content active">
@@ -1432,85 +1590,9 @@
 
         <!-- Well Done screen -->
         <div class="dr-done-screen" id="dr-done-screen">
-          <div class="dr-done-illustration">
-            <svg viewBox="0 0 200 180" fill="none">
-              <rect
-                x="50"
-                y="30"
-                width="120"
-                height="140"
-                rx="8"
-                fill="white"
-                stroke="#ccc"
-                stroke-width="1.5"
-              />
-              <rect
-                x="45"
-                y="34"
-                width="120"
-                height="140"
-                rx="8"
-                fill="white"
-                stroke="#ddd"
-                stroke-width="1"
-              />
-              <rect
-                x="40"
-                y="38"
-                width="120"
-                height="140"
-                rx="8"
-                fill="white"
-                stroke="#eee"
-                stroke-width="1"
-              />
-              <g stroke="#4a7adf" stroke-width="2" fill="none">
-                <path d="M75 30 C75 20, 85 20, 85 30" />
-                <path d="M90 30 C90 20, 100 20, 100 30" />
-                <path d="M105 30 C105 20, 115 20, 115 30" />
-                <path d="M120 30 C120 20, 130 20, 130 30" />
-                <path d="M135 30 C135 20, 145 20, 145 30" />
-              </g>
-              <circle
-                cx="110"
-                cy="110"
-                r="30"
-                stroke="#e8652a"
-                stroke-width="2.5"
-                fill="none"
-              />
-              <polygon
-                points="102,95 128,110 102,125"
-                fill="none"
-                stroke="#e8652a"
-                stroke-width="2.5"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M85 130 C70 120, 75 100, 95 95"
-                stroke="#e8652a"
-                stroke-width="2"
-                fill="none"
-                marker-end="url(#arrowhead)"
-              />
-              <defs>
-                <marker
-                  id="arrowhead"
-                  markerWidth="8"
-                  markerHeight="6"
-                  refX="8"
-                  refY="3"
-                  orient="auto"
-                >
-                  <polygon points="0 0, 8 3, 0 6" fill="#e8652a" />
-                </marker>
-              </defs>
-            </svg>
-          </div>
           <div class="dr-done-title">Well done!</div>
           <div class="dr-done-text">
-            You've gone through your entire routine.<br />Come back soon to keep
-            up your progress.
+            Here's an analysis of your routine.
           </div>
 
           <!-- Stats sections -->
@@ -1518,7 +1600,8 @@
             <!-- 1. Activity for the last 7 days -->
             <div class="dr-stat-card">
               <div class="dr-stat-header">
-                <span class="dr-stat-title">Activity — Last 7 Days</span>
+                <span class="dr-stat-title">% of your routine items completed</span>
+                <span class="dr-stat-badge">Last 7 Days</span>
               </div>
               <div class="dr-7day-bar-wrap">
                 <div class="dr-7day-bar-row">
@@ -1538,35 +1621,60 @@
             <!-- 2. Contribution graph -->
             <div class="dr-stat-card">
               <div class="dr-stat-header">
-                <span class="dr-stat-title">Contribution Graph</span>
+                <span class="dr-stat-title">Days partially and fully completed</span>
                 <span style="font-size: 11px; color: var(--text-muted)"
-                  >Last 30 days</span
+                  >Last 28 days</span
                 >
               </div>
-              <div class="dr-contrib-grid" id="dr-contrib-grid"></div>
+              <div class="dr-contrib-container">
+                <div class="dr-contrib-labels-y">
+                  <span>Feb</span>
+                  <span>Feb</span>
+                  <span>Mar</span>
+                  <span>Mar</span>
+                </div>
+                <div class="dr-contrib-wrapper">
+                  <div class="dr-contrib-labels-x">
+                    <span>M</span>
+                    <span>T</span>
+                    <span>W</span>
+                    <span>T</span>
+                    <span>F</span>
+                    <span>S</span>
+                    <span>S</span>
+                  </div>
+                  <div class="dr-contrib-grid" id="dr-contrib-grid"></div>
+                </div>
+              </div>
               <div class="dr-contrib-legend">
-                <span>None</span>
-                <div
-                  class="dr-contrib-legend-dot"
-                  style="background: var(--gray-light)"
-                ></div>
-                <span>Partial</span>
-                <div
-                  class="dr-contrib-legend-dot"
-                  style="background: #7bc96f"
-                ></div>
-                <span>Full</span>
-                <div
-                  class="dr-contrib-legend-dot"
-                  style="background: #196127"
-                ></div>
+                <div class="dr-contrib-legend-item">
+                  <div
+                    class="dr-contrib-legend-dot"
+                    style="background: var(--gray-light)"
+                  ></div>
+                  <span>None</span>
+                </div>
+                <div class="dr-contrib-legend-item">
+                  <div
+                    class="dr-contrib-legend-dot"
+                    style="background: #7bc96f"
+                  ></div>
+                  <span>Partial</span>
+                </div>
+                <div class="dr-contrib-legend-item">
+                  <div
+                    class="dr-contrib-legend-dot"
+                    style="background: #196127"
+                  ></div>
+                  <span>Full</span>
+                </div>
               </div>
             </div>
 
             <!-- 3. Per-action completion rate -->
             <div class="dr-stat-card">
               <div class="dr-stat-header">
-                <span class="dr-stat-title">Per-Action Completion</span>
+                <span class="dr-stat-title">Completion of each item</span>
                 <span style="font-size: 11px; color: var(--text-muted)"
                   >Last 7 days</span
                 >
@@ -1574,21 +1682,17 @@
               <div id="dr-action-list"></div>
             </div>
 
-            <!-- 4. Total routine days -->
-            <div class="dr-stat-card">
-              <div class="dr-total-days">
-                <div class="dr-total-days-number">127</div>
-                <div class="dr-total-days-label">
-                  You've done your routine on <strong>127 days</strong>.
-                </div>
-              </div>
-            </div>
-
-            <!-- 5. Metric summary -->
+            <!-- 4. Metric summary -->
             <div class="dr-stat-card">
               <div class="dr-stat-header">
-                <span class="dr-stat-title">Metric Summary</span>
+                <span class="dr-stat-title">Metrics you're tracking</span>
               </div>
+              <div class="dr-metric-views">
+                <button class="dr-metric-view-btn active" onclick="updateMetricRange(7, this)">7 Day</button>
+                <button class="dr-metric-view-btn" onclick="updateMetricRange(30, this)">30 Day</button>
+                <button class="dr-metric-view-btn" onclick="updateMetricRange(365, this)">365 Day</button>
+              </div>
+              <div class="dr-metric-title">How energetic do you feel?</div>
               <div class="dr-metric-chart">
                 <canvas class="dr-metric-canvas" id="dr-metric-canvas"></canvas>
                 <div class="dr-metric-nav">
@@ -1600,7 +1704,7 @@
           </div>
 
           <button class="dr-continue-btn" onclick="closeDoRoutine()">
-            Continue To Your Routine &rarr;
+            &larr; Back To Your Routine
           </button>
         </div>
 
@@ -1699,6 +1803,14 @@
     </div>
 
     <script>
+      // Stats persona: active days in the last 7 (and reflected in 30d graph)
+      let statsActiveDays = 7;
+
+      function selectStatsPersona(activeDays) {
+        statsActiveDays = activeDays;
+        document.getElementById("persona-gate").classList.remove("active");
+      }
+
       // State
       let completedItems = new Set();
       const totalItems = 2; // timer + todo
@@ -1808,7 +1920,7 @@
         const el = document.getElementById("streak-info");
         if (completedItems.size > 0) {
           el.className = "streak-info";
-          el.innerHTML = '<span class="fire">🔥</span> Streak: 1';
+          el.innerHTML = `<span class="fire">🔥</span> Streak: ${statsActiveDays}`;
 
           // Also show take day off & best streak
           const parent = el.parentElement;
@@ -1823,7 +1935,7 @@
             const best = document.createElement("span");
             best.className = "best-streak";
             best.id = "best-streak-label";
-            best.textContent = "Best: 1 (current)";
+            best.textContent = `Best: ${statsActiveDays} (current)`;
             parent.appendChild(best);
           }
         } else {
@@ -1962,19 +2074,60 @@
           renderDrStep();
         } else {
           // Show celebration then done screen
-          showCelebration(1, showDrDone);
+          showCelebration(statsActiveDays, showDrDone);
         }
       }
 
       // ========== POPULATE DONE STATS ==========
+      function getRoutineCompletionSchedule(activeDays) {
+        // Each day each item is either done (true) or not done (false).
+        // We keep the resulting per-day routine completion limited to {0, 50, 100}.
+        //
+        // Item order matches `.routine-item` in the DOM:
+        // 0 = Do a 3 minute meditation
+        // 1 = test
+        const schedules = {
+          1: { meditation: [true], test: [true] },
+          // 3-day window (oldest -> newest): 100%, 50%, 100%
+          3: { meditation: [true, true, true], test: [true, false, true] },
+          // 7-day window (oldest -> newest):
+          // meditation: on 6/7 days, test: on 5/7 days
+          // (no 0% day, so a 7-day streak is consistent)
+          7: {
+            meditation: [true, false, true, true, true, true, true],
+            test: [true, true, true, true, false, false, true],
+          },
+        };
+
+        return schedules[activeDays] || schedules[7];
+      }
+
+      function buildSevenDayPcts(activeDays) {
+        const { meditation, test } = getRoutineCompletionSchedule(activeDays);
+        const pcts = [0, 0, 0, 0, 0, 0, 0];
+        const start = 7 - activeDays;
+
+        for (let i = 0; i < activeDays; i++) {
+          const medDone = Boolean(meditation[i]);
+          const testDone = Boolean(test[i]);
+          const dayPct = (medDone ? 50 : 0) + (testDone ? 50 : 0); // 0/50/100
+          pcts[start + i] = dayPct;
+        }
+
+        return pcts;
+      }
+
       function populateDoneStats() {
         // --- 1. 7-Day Activity Bar Chart ---
         const barChart = document.getElementById("dr-bar-chart");
         barChart.innerHTML = "";
         const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-        const dayPcts = [100, 80, 100, 60, 100, 40, 100]; // mock data
+        const dayPcts = buildSevenDayPcts(statsActiveDays);
+        const activeDays = statsActiveDays;
+        const activeStart = 7 - activeDays;
+        const activeSlice = dayPcts.slice(activeStart);
         const avgPct = Math.round(
-          dayPcts.reduce((a, b) => a + b, 0) / dayPcts.length,
+          activeSlice.reduce((a, b) => a + b, 0) / activeDays,
         );
         document.getElementById("dr-7day-pct").textContent = avgPct + "%";
         document.getElementById("dr-7day-fill").style.width = avgPct + "%";
@@ -1997,20 +2150,30 @@
           barChart.appendChild(col);
         });
 
-        // --- 2. Contribution Graph (30 days) ---
+        // --- 2. Contribution Graph (28 days: 7 cols × 4 rows, index 0 = oldest) ---
         const grid = document.getElementById("dr-contrib-grid");
         grid.innerHTML = "";
-        // Need exactly 30 dots for 30 days (6 cols × 5 rows)
-        const totalDots = 30;
+        const totalDots = 28;
         const levels = ["", "partial", "full"];
         const contribData = [];
+        const schedule = getRoutineCompletionSchedule(statsActiveDays);
+        const routineActivePcts = Array.from({ length: statsActiveDays }, (_, idx) => {
+          const medDone = Boolean(schedule.meditation[idx]);
+          const testDone = Boolean(schedule.test[idx]);
+          return (medDone ? 50 : 0) + (testDone ? 50 : 0); // 0/50/100
+        });
+
         for (let i = 0; i < totalDots; i++) {
-          const rand = Math.random();
-          if (rand < 0.25)
-            contribData.push(0); // none
-          else if (rand < 0.55)
-            contribData.push(1); // partial
-          else contribData.push(2); // full
+          const daysAgo = totalDots - 1 - i;
+          const isActive = daysAgo < statsActiveDays;
+          if (!isActive) {
+            contribData.push(0);
+            continue;
+          }
+          const scheduleIndex = statsActiveDays - 1 - daysAgo; // newest active day -> last index
+          const dayPct = routineActivePcts[scheduleIndex] ?? 0;
+          const level = dayPct === 100 ? 2 : dayPct === 50 ? 1 : 0;
+          contribData.push(level);
         }
         contribData.forEach((level) => {
           const dot = document.createElement("div");
@@ -2023,16 +2186,20 @@
         const actionList = document.getElementById("dr-action-list");
         actionList.innerHTML = "";
         const routineItems = document.querySelectorAll(".routine-item");
+        const medCount = schedule.meditation.filter(Boolean).length;
+        const testCount = schedule.test.filter(Boolean).length;
+        const meditationPct = Math.floor((medCount / statsActiveDays) * 100);
+        const testPct = Math.floor((testCount / statsActiveDays) * 100);
         const mockActions = [
-          { pct: 86, streak: 3 },
-          { pct: 71, streak: 1 },
+          { pct: meditationPct, streak: statsActiveDays },
+          { pct: testPct, streak: statsActiveDays },
         ];
         routineItems.forEach((item, idx) => {
           const icon = item.querySelector(".item-icon").textContent;
           const name = item.querySelector(".item-name").textContent;
           const mock = mockActions[idx] || {
-            pct: Math.floor(Math.random() * 40 + 60),
-            streak: Math.floor(Math.random() * 5 + 1),
+            pct: 0,
+            streak: statsActiveDays,
           };
 
           const row = document.createElement("div");
@@ -2053,9 +2220,21 @@
           actionList.appendChild(row);
         });
 
-        // --- 4. Total routine days is static in HTML (127) ---
+        // --- 4. Metric Summary Chart (canvas) ---
+        renderMetricChart(7);
+      }
 
-        // --- 5. Metric Summary Chart (canvas) ---
+      function updateMetricRange(days, btn) {
+        // Update button states
+        const buttons = btn.parentElement.querySelectorAll(".dr-metric-view-btn");
+        buttons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        
+        // Redraw chart
+        renderMetricChart(days);
+      }
+
+      function renderMetricChart(rangeDays) {
         const canvas = document.getElementById("dr-metric-canvas");
         const ctx = canvas.getContext("2d");
         const dpr = window.devicePixelRatio || 1;
@@ -2066,13 +2245,12 @@
         const w = rect.width;
         const h = rect.height;
 
-        // Light background
-        ctx.fillStyle = "#f5f6f8";
+        // White background instead of gray
+        ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, w, h);
 
-        // Labels
         const yLabels = [
-          "energetic",
+          "energetic: 10",
           "9",
           "8",
           "7",
@@ -2082,25 +2260,27 @@
           "3",
           "2",
           "1",
-          "lethargic",
+          "lethargic: 0",
         ];
+
         const steps = yLabels.length;
-        const padLeft = 60;
+        const padLeft = 96;
         const padRight = 16;
         const padTop = 16;
         const padBottom = 30;
         const chartW = w - padLeft - padRight;
         const chartH = h - padTop - padBottom;
 
-        // Y-axis labels
+        // Y-axis labels positioned alongside
         ctx.fillStyle = "#666";
         ctx.font = "10px system-ui, sans-serif";
         ctx.textAlign = "right";
         yLabels.forEach((lbl, i) => {
           const y = padTop + (i / (steps - 1)) * chartH;
-          ctx.fillText(lbl, padLeft - 8, y + 3);
+          ctx.fillText(lbl, padLeft - 10, y + 3);
+          
           // grid line
-          ctx.strokeStyle = "#e0e0e0";
+          ctx.strokeStyle = "#f0f0f0";
           ctx.lineWidth = 0.5;
           ctx.beginPath();
           ctx.moveTo(padLeft, y);
@@ -2108,33 +2288,72 @@
           ctx.stroke();
         });
 
-        // X-axis dates (last 7 days)
+        // X-axis dates
         const xDates = [];
         const now = new Date();
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date(now);
-          d.setDate(d.getDate() - i);
-          xDates.push(
-            d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-          );
+        
+        if (rangeDays === 7) {
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            xDates.push(d.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
+          }
+        } else if (rangeDays === 30) {
+          // Show every 5th day
+          for (let i = 29; i >= 0; i--) {
+            if (i % 5 === 0 || i === 0 || i === 29) {
+              const d = new Date(now);
+              d.setDate(d.getDate() - i);
+              xDates.push(d.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
+            } else {
+              xDates.push("");
+            }
+          }
+        } else if (rangeDays === 365) {
+          // Show first of each month
+          for (let i = 11; i >= 0; i--) {
+            const d = new Date(now);
+            d.setMonth(d.getMonth() - i);
+            xDates.push(d.toLocaleDateString("en-US", { month: "short" }));
+          }
         }
+
         ctx.textAlign = "center";
         ctx.fillStyle = "#666";
         xDates.forEach((lbl, i) => {
-          const x = padLeft + (i / (xDates.length - 1)) * chartW;
-          ctx.fillText(lbl, x, h - 8);
+          if (lbl) {
+            const x = padLeft + (i / (xDates.length - 1)) * chartW;
+            ctx.fillText(lbl, x, h - 8);
+          }
         });
 
-        // Data bar — only today has a value (5 on scale)
-        const barIdx = 5; // second to last position (today = Mar 10)
-        const barX = padLeft + (barIdx / (xDates.length - 1)) * chartW;
-        const barVal = 5; // energetic = 0 (top), lethargic = 10 (bottom), 5 = middle
-        const barTopY = padTop + ((10 - barVal) / 10) * chartH;
-        const barBottomY = padTop + chartH;
-        const barW = (chartW / xDates.length) * 0.5;
+        const numBars = rangeDays === 365 ? 12 : rangeDays;
+        const barW = (chartW / numBars) * 0.6;
+        const span =
+          rangeDays === 365
+            ? Math.min(statsActiveDays, 30)
+            : Math.min(statsActiveDays, numBars);
 
         ctx.fillStyle = "#5b8def";
-        ctx.fillRect(barX - barW / 2, barTopY, barW, barBottomY - barTopY);
+
+        const pseudoEnergy = (i, salt) => {
+          const x = Math.sin(i * 2.1 + salt * 0.7) * 0.5 + 0.5;
+          return 3 + x * 5;
+        };
+
+        for (let i = 0; i < numBars; i++) {
+          const idxFromEnd = numBars - 1 - i;
+          const hasData =
+            rangeDays === 365 ? idxFromEnd < Math.max(1, Math.ceil(span / 30)) : idxFromEnd < span;
+          if (!hasData) continue;
+
+          const barVal = pseudoEnergy(i, statsActiveDays);
+          const barX = padLeft + (i / (numBars - 1)) * chartW;
+          const barTopY = padTop + ((10 - barVal) / 10) * chartH;
+          const barBottomY = padTop + chartH;
+
+          ctx.fillRect(barX - barW / 2, barTopY, barW, barBottomY - barTopY);
+        }
       }
 
       // ========== CELEBRATION LOGIC ==========
@@ -2142,7 +2361,8 @@
       function showCelebration(days, proceedCallback) {
         const overlay = document.getElementById("streak-celebration");
         const textArea = document.getElementById("streak-celebration-text");
-        textArea.innerHTML = `${days} day<br>streak!`;
+        const dayLabel = days === 1 ? "day" : "days";
+        textArea.innerHTML = `${days} ${dayLabel}<br>streak!`;
         overlay.classList.add("active");
 
         // generate confetti
@@ -2237,7 +2457,7 @@
         if (completedItems.size >= totalItems) {
           // Small delay so the user sees the last item animate
           setTimeout(() => {
-            showCelebration(1, showDrDoneFromMain);
+            showCelebration(statsActiveDays, showDrDoneFromMain);
           }, 600);
         }
       }
